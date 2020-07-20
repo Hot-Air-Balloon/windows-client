@@ -62,45 +62,45 @@ namespace WindowsFormsApp1
         }
         private byte[] encrypt(byte[] data)
         {
-            byte[] mBox = new byte[keyLen];
+            // byte[] mBox = new byte[keyLen];
             //Buffer.BlockCopy(keybox, 0, mBox, 0, keyLen);
 
-            Array.Copy(keybox, mBox, keyLen);
+            // Array.Copy(keybox, mBox, keyLen);
             byte[] output = new byte[data.Length];
 
-            fixed (byte* _mBox = &mBox[0])
-            fixed (byte* _data = &data[0])
-            fixed (byte* _output = &output[0])
-            {
-                var length = data.Length;
-                int i = 0, j = 0;
-                for (Int64 offset = 0; offset < length; offset++)
-                {
-                    i = (++i) & 0xFF;
-                    j = (j + *(_mBox + i)) & 0xFF;
-                    byte temp = *(_mBox + i);
-                    *(_mBox + i) = *(_mBox + j);
-                    *(_mBox + j) = temp;
+            //fixed (byte* _mBox = &mBox[0])
+            //fixed (byte* _data = &data[0])
+            //fixed (byte* _output = &output[0])
+            //{
+            //    var length = data.Length;
+            //    int i = 0, j = 0;
+            //    for (Int64 offset = 0; offset < length; offset++)
+            //    {
+            //        i = (++i) & 0xFF;
+            //        j = (j + *(_mBox + i)) & 0xFF;
+            //        byte temp = *(_mBox + i);
+            //        *(_mBox + i) = *(_mBox + j);
+            //        *(_mBox + j) = temp;
 
 
-                    byte a = *(_data + offset);
-                    byte b = *(_mBox + ((*(_mBox + i) + *(_mBox + j)) & 0xFF));
-                    *(_output + offset) = (byte)((int)a ^ (int)b);
-                }
-            }
-
-
-            //for (Int64 offset = 0; offset < data.Length; offset++) {
-            //    i = (++i) & 0xFF;
-            //    j = (j + mBox[i]) & 0xFF;
-            //    byte temp = mBox[i];
-            //    mBox[i] = mBox[j];
-            //    mBox[j] = temp;
-
-            //    byte a = data[offset];
-            //    byte b = mBox[(mBox[i] + mBox[j]) & 0xFF];
-            //    output[offset] = (byte)((int)a ^ (int)b);
+            //        byte a = *(_data + offset);
+            //        byte b = *(_mBox + ((*(_mBox + i) + *(_mBox + j)) & 0xFF));
+            //        *(_output + offset) = (byte)((int)a ^ (int)b);
+            //    }
             //}
+            int i = 0, j = 0;
+            for (int offset = 0; offset < data.Length; offset++)
+            {
+                i = (++i) & 0xff;
+                j = (j + keybox[i]) & 0xff;
+                byte temp = keybox[i];
+                keybox[i] = keybox[j];
+                keybox[j] = temp;
+
+                byte a = data[offset];
+                byte b = keybox[(keybox[i] + keybox[j]) & 0xff];
+                output[offset] = (byte)((int)a ^ (int)b);
+            }
             return output;
         }
 
@@ -212,39 +212,37 @@ namespace WindowsFormsApp1
             byte[] mBox = GetKey(pass, keyLen);
             byte[] output = new byte[data.Length];
 
-            fixed (byte* _mBox = &mBox[0])
-            fixed (byte* _data = &data[0])
-            fixed (byte* _output = &output[0])
-            {
-                var length = data.Length;
-                int i = 0, j = 0;
-                for (Int64 offset = 0; offset < length; offset++)
-                {
-                    i = (++i) & 0xFF;
-                    j = (j + *(_mBox + i)) & 0xFF;
-                    byte temp = *(_mBox + i);
-                    *(_mBox + i) = *(_mBox + j);
-                    *(_mBox + j) = temp;
-
-
-                    byte a = *(_data + offset);
-                    byte b = *(_mBox + ((*(_mBox + i) + *(_mBox + j)) & 0xFF));
-                    *(_output + offset) = (byte)((int)a ^ (int)b);
-                }
-            }
-
-
-            //for (Int64 offset = 0; offset < data.Length; offset++) {
+            //byte* _mBox = &mBox[0];
+            //byte* _output = &output[0];
+            //var length = data.Length;
+            //int i = 0, j = 0;
+            //for (Int64 offset = 0; offset < length; offset++)
+            //{
             //    i = (++i) & 0xFF;
-            //    j = (j + mBox[i]) & 0xFF;
-            //    byte temp = mBox[i];
-            //    mBox[i] = mBox[j];
-            //    mBox[j] = temp;
+            //    j = (j + *(_mBox + i)) & 0xFF;
+            //    byte temp = *(_mBox + i);
+            //    *(_mBox + i) = *(_mBox + j);
+            //    *(_mBox + j) = temp;
 
-            //    byte a = data[offset];
-            //    byte b = mBox[(mBox[i] + mBox[j]) & 0xFF];
-            //    output[offset] = (byte)((int)a ^ (int)b);
+
+            //    byte a = *(_data + offset);
+            //    byte b = *(_mBox + ((*(_mBox + i) + *(_mBox + j)) & 0xFF));
+            //    *(_output + offset) = (byte)((int)a ^ (int)b);
             //}
+
+            int i = 0, j = 0;
+            for (Int64 offset = 0; offset < data.Length; offset++)
+            {
+                i = (++i) & 0xFF;
+                j = (j + mBox[i]) & 0xFF;
+                byte temp = mBox[i];
+                mBox[i] = mBox[j];
+                mBox[j] = temp;
+
+                byte a = data[offset];
+                byte b = mBox[(mBox[i] + mBox[j]) & 0xFF];
+                output[offset] = (byte)((int)a ^ (int)b);
+            }
             return output;
         }
 
@@ -252,36 +250,38 @@ namespace WindowsFormsApp1
         private static byte[] GetKey(byte[] pass, int kLen)
         {
             byte[] mBox = new byte[kLen];
-            fixed (byte* _mBox = &mBox[0])
-            {
-                for (Int64 i = 0; i < kLen; i++)
-                {
-                    *(_mBox + i) = (byte)i;
-                }
-                Int64 j = 0;
-                int lengh = pass.Length;
-                fixed (byte* _pass = &pass[0])
-                {
-                    for (Int64 i = 0; i < kLen; i++)
-                    {
-                        j = (j + *(_mBox + i) + *(_pass + (i % lengh))) % kLen;
-                        byte temp = *(_mBox + i);
-                        *(_mBox + i) = *(_mBox + j);
-                        *(_mBox + j) = temp;
-                    }
-                }
-            }
+            //fixed (byte* _mBox = &mBox[0])
+            //{
+            //    for (Int64 i = 0; i < kLen; i++)
+            //    {
+            //        *(_mBox + i) = (byte)i;
+            //    }
+            //    Int64 j = 0;
+            //    int lengh = pass.Length;
+            //    fixed (byte* _pass = &pass[0])
+            //    {
+            //        for (Int64 i = 0; i < kLen; i++)
+            //        {
+            //            j = (j + *(_mBox + i) + *(_pass + (i % lengh))) % kLen;
+            //            byte temp = *(_mBox + i);
+            //            *(_mBox + i) = *(_mBox + j);
+            //            *(_mBox + j) = temp;
+            //        }
+            //    }
+            //}
 
-            //for (Int64 i = 0; i < kLen; i++) {
-            //    mBox[i] = (byte)i;
-            //}
-            //Int64 j = 0;
-            //for (Int64 i = 0; i < kLen; i++) {
-            //    j = (j + mBox[i] + pass[i % pass.Length]) % kLen;
-            //    byte temp = mBox[i];
-            //    mBox[i] = mBox[j];
-            //    mBox[j] = temp;
-            //}
+            for (Int64 i = 0; i < kLen; i++)
+            {
+                mBox[i] = (byte)i;
+            }
+            Int64 j = 0;
+            for (Int64 i = 0; i < kLen; i++)
+            {
+                j = (j + mBox[i] + pass[i % pass.Length]) % kLen;
+                byte temp = mBox[i];
+                mBox[i] = mBox[j];
+                mBox[j] = temp;
+            }
             return mBox;
         }
     }

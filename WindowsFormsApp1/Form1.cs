@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Buffers.Text;
 using System.Collections.Generic;
 using System.ComponentModel;
 using System.Data;
@@ -34,7 +35,8 @@ namespace WindowsFormsApp1
 
         private void label1_Click(object sender, EventArgs e)
         {
-
+            string reuslt = Convert.ToBase64String(RC4.Encrypt("ABCDDDDDDDDDDDDDDDDDDDDDD", "ToolGood", Encoding.UTF8));
+            SetLogTextBox(reuslt);
         }
         public void SetLogTextBox(String logStr)
         {
