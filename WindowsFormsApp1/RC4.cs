@@ -11,6 +11,8 @@ namespace WindowsFormsApp1
         private byte[] keybox;
         private const int keyLen = 256;
         private Encoding encoding;
+        private long jOffset = 0;
+        private long iOffset = 0;
 
         public RC4(string pass)
         {
@@ -88,7 +90,7 @@ namespace WindowsFormsApp1
             //        *(_output + offset) = (byte)((int)a ^ (int)b);
             //    }
             //}
-            int i = 0, j = 0;
+            long i = iOffset, j = jOffset;
             for (int offset = 0; offset < data.Length; offset++)
             {
                 i = (++i) & 0xff;
@@ -101,6 +103,8 @@ namespace WindowsFormsApp1
                 byte b = keybox[(keybox[i] + keybox[j]) & 0xff];
                 output[offset] = (byte)((int)a ^ (int)b);
             }
+            iOffset = i;
+            jOffset = j;
             return output;
         }
 

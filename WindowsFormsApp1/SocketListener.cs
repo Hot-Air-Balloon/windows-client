@@ -5,6 +5,7 @@ using System.Linq;
 using System.Net;
 using System.Net.Sockets;
 using System.Security.AccessControl;
+using System.Security.Cryptography;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
@@ -156,6 +157,54 @@ namespace WindowsFormsApp1
             targetInfo["port"] = targetPort;
             return targetInfo;
         }
+        private string GetMd5Hash(MD5 md5Hash, string input)
+        {
+            // Convert the input string to a byte array and compute the hash.
+            byte[] data = md5Hash.ComputeHash(Encoding.UTF8.GetBytes(input));
+
+            // Create a new Stringbuilder to collect the bytes
+            // and create a string.
+            StringBuilder sBuilder = new StringBuilder();
+
+            // Loop through each byte of the hashed data
+            // and format each one as a hexadecimal string.
+            for (int i = 0; i < data.Length; i++)
+            {
+                sBuilder.Append(data[i].ToString("x2"));
+            }
+
+            // Return the hexadecimal string.
+            return sBuilder.ToString();
+        }
+        private byte[] ShortToHByte(short length)
+        {
+            short _length = IPAddress.HostToNetworkOrder(length);
+            return BitConverter.GetBytes(_length);
+        }
+        private byte[] GetBytes(string str)
+        {
+            byte[] bytes = new byte[str.Length * sizeof(char)];
+            System.Buffer.BlockCopy(str.ToCharArray(), 0, bytes, 0, bytes.Length);
+            return bytes;
+        }
+        private void SendTargetInfoToRemote(Dictionary<string, object> targetInfo, Socket remoteSock)
+        {
+            // lenth addrLength addr port md5
+            byte[] sendData = new byte[512];
+            string addr = (string)targetInfo["addr"];
+            byte[] addrLength = ShortToHByte((short)addr.Length);
+            byte[] port = ShortToHByte((short)targetInfo["port"]);
+            MD5 md5Hash = MD5.Create();
+            string md5 = GetMd5Hash(md5Hash, (string)targetInfo["addr"]);
+            byte[] md5b = GetBytes(md5);
+            sbyte length = (sbyte)(2 + 2 + 32 + (sbyte)(addr.Length));
+            byte[] bLength = BitConverter.GetBytes(length);
+            bLength.CopyTo(sendData, 0);
+            addrLength.CopyTo(sendData, 1);
+            GetBytes(addr).CopyTo(sendData, 3);
+            port.CopyTo(sendData, 3 + addr.Length);
+            md5b.CopyTo(sendData, 5 + addr.Length);
+        }
         /// <summary>
         /// 
         /// </summary>
@@ -173,7 +222,6 @@ namespace WindowsFormsApp1
                 return;
             }
             // 给目标建立连接
-
             Socket targetSock = new Socket(AddressFamily.InterNetwork,
                     SocketType.Stream,
                     ProtocolType.Tcp);

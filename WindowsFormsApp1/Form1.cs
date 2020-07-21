@@ -35,8 +35,11 @@ namespace WindowsFormsApp1
 
         private void label1_Click(object sender, EventArgs e)
         {
-            string reuslt = Convert.ToBase64String(RC4.Encrypt("ABCDDDDDDDDDDDDDDDDDDDDDD", "ToolGood", Encoding.UTF8));
-            SetLogTextBox(reuslt);
+            RC4 rc4 = new RC4("niceDayIn2020@998", Encoding.UTF8);
+            byte[] results1 = rc4.Encrypt("1111");
+            byte[] results2 = rc4.Encrypt("11");
+            // string reuslt = Convert.ToBase64String(RC4.Encrypt("ABCDDDDDDDDDDDDDDDDDDDDDD", "ToolGood", Encoding.UTF8));
+            SetLogTextBox(BitConverter.ToString(results1) + BitConverter.ToString(results2));
         }
         public void SetLogTextBox(String logStr)
         {
