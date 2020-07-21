@@ -183,11 +183,11 @@ namespace WindowsFormsApp1
         }
         private byte[] GetBytes(string str)
         {
-            byte[] bytes = new byte[str.Length * sizeof(char)];
-            System.Buffer.BlockCopy(str.ToCharArray(), 0, bytes, 0, bytes.Length);
-            return bytes;
+            // byte[] bytes = new byte[str.Length];
+            // System.Buffer.BlockCopy(str.ToCharArray(), 0, bytes, 0, bytes.Length);
+            return Encoding.ASCII.GetBytes(str);
         }
-        private void SendTargetInfoToRemote(Dictionary<string, object> targetInfo, Socket remoteSock)
+        private void SendTargetInfoToRemote(Dictionary<string, object> targetInfo, Socket remoteSock, RC4 enCodeRc4)
         {
             // lenth addrLength addr port md5
             byte[] sendData = new byte[512];
@@ -198,12 +198,19 @@ namespace WindowsFormsApp1
             string md5 = GetMd5Hash(md5Hash, (string)targetInfo["addr"]);
             byte[] md5b = GetBytes(md5);
             sbyte length = (sbyte)(2 + 2 + 32 + (sbyte)(addr.Length));
-            byte[] bLength = BitConverter.GetBytes(length);
-            bLength.CopyTo(sendData, 0);
-            addrLength.CopyTo(sendData, 1);
-            GetBytes(addr).CopyTo(sendData, 3);
-            port.CopyTo(sendData, 3 + addr.Length);
-            md5b.CopyTo(sendData, 5 + addr.Length);
+            byte[] bLength = BitConverter.GetBytes((sbyte)length);
+            byte[] encode = new byte[4 + 32 + addr.Length];
+            // bLength.CopyTo(encode, 0);
+            addrLength.CopyTo(encode, 0);
+            byte[] tmpAddr = GetBytes(addr);
+            tmpAddr.CopyTo(encode, 2);
+            port.CopyTo(encode, 2 + addr.Length);
+            md5b.CopyTo(encode, 4 + addr.Length);
+            byte[] rcEncode = enCodeRc4.Encrypt(encode);
+            rcEncode.CopyTo(sendData, 1);
+            sendData[0] = (byte)length;
+            mainForm.SetLogTextBox(BitConverter.ToString(sendData));
+            remoteSock.Send(sendData,  0, addr.Length + 5 + 32, SocketFlags.None);
         }
         /// <summary>
         /// 
@@ -211,6 +218,8 @@ namespace WindowsFormsApp1
         /// <param name="clientSocket"></param>
         private void HandleSocket(object clientSocket)
         {
+            RC4 enCodeRc4 = new RC4("niceDayIn2020@998");
+            RC4 deCodeRc4 = new RC4("niceDayIn2020@998");
             ArrayList arrayList = clientSocket as ArrayList;
             int index = (int)arrayList[0];
             Socket clientSock = arrayList[1] as Socket;
@@ -228,10 +237,11 @@ namespace WindowsFormsApp1
             Thread sendTargetThread = null;
             try
             {
-                targetSock.Connect((string)remoteInfo["addr"], (short)remoteInfo["port"]);
+                targetSock.Connect("127.0.0.1", 16801);
+                SendTargetInfoToRemote(remoteInfo, targetSock, enCodeRc4);
                 sendTargetThread = new Thread(ThreadForTarget);
-                sendTargetThread.Start(new ArrayList { clientSock, targetSock });
-                LoopReceiveAndSend(targetSock, clientSock);
+                sendTargetThread.Start(new ArrayList { clientSock, targetSock, enCodeRc4 });
+                LoopReceiveAndSend(targetSock, clientSock, deCodeRc4);
             } catch (Exception) {
                 mainForm.SetLogTextBox(string.Format("客户端发送接受异常"));
             }
@@ -247,15 +257,16 @@ namespace WindowsFormsApp1
             ArrayList arrayList = socketList as ArrayList;
             Socket clientSock = arrayList[0] as Socket;
             Socket targetSock = arrayList[1] as Socket;
+            RC4 enCodeRc4 = arrayList[2] as RC4;
             try
             {
-                LoopReceiveAndSend(clientSock, targetSock);
+                LoopReceiveAndSend(clientSock, targetSock, enCodeRc4);
             } catch(Exception)
             {
                 mainForm.SetLogTextBox("发送给目标数据异常");
             }
         }
-        private void LoopReceiveAndSend(Socket reviceSock, Socket sendSock)
+        private void LoopReceiveAndSend(Socket reviceSock, Socket sendSock, RC4 enCodeRc4)
         {
             while(true)
             {
@@ -265,7 +276,8 @@ namespace WindowsFormsApp1
                 }
                 byte[] data = new byte[4096 * 10];
                 int tlength = reviceSock.Receive(data);
-                int sendLength = sendSock.Send(data, 0, tlength, SocketFlags.None);
+                byte[] sendData = data.Take(tlength).ToArray();
+                int sendLength = sendSock.Send(enCodeRc4.Encrypt(sendData), 0, tlength, SocketFlags.None);
                 // mainForm.SetLogTextBox(System.Text.Encoding.ASCII.GetString(_data));
                 if (tlength != sendLength)
                 {
