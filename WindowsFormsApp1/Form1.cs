@@ -14,6 +14,7 @@ namespace WindowsFormsApp1
     public partial class Form1 : Form
     {
         private delegate void SafeCallDelegate(string text);
+        private SocketListener sockListener = null;
         public Form1()
         {
             InitializeComponent();
@@ -30,7 +31,8 @@ namespace WindowsFormsApp1
         private void RunListener(object mainForm)
         {
             Form1 form = mainForm as Form1;
-            SocketListener.Instance().Init(form);
+            sockListener = SocketListener.Instance();
+            sockListener.Init(form);
         }
 
         private void label1_Click(object sender, EventArgs e)
@@ -51,6 +53,33 @@ namespace WindowsFormsApp1
             else
             {
                 this.textBox1.AppendText(logStr + "\r\n");
+            }
+        }
+
+        private void Form1_FormClosing(object sender, FormClosingEventArgs e)
+        {
+            if (e.CloseReason == CloseReason.UserClosing)
+            {
+                e.Cancel = true;
+                this.WindowState = FormWindowState.Minimized;
+                this.notifyIcon1.Visible = true;
+                this.Hide();
+                return;
+            }
+        }
+
+        private void notifyIcon1_MouseDoubleClick(object sender, MouseEventArgs e)
+        {
+            if (this.Visible)
+            {
+                this.WindowState = FormWindowState.Minimized;
+                this.notifyIcon1.Visible = true;
+                this.Hide();
+            } else
+            {
+                this.Visible = true;
+                this.WindowState = FormWindowState.Normal;
+                this.Activate();
             }
         }
     }

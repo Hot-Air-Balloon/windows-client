@@ -34,15 +34,26 @@ namespace WindowsFormsApp1
         private void InitializeComponent()
         {
             this.components = new System.ComponentModel.Container();
+            System.ComponentModel.ComponentResourceManager resources = new System.ComponentModel.ComponentResourceManager(typeof(Form1));
             this.notifyIcon1 = new System.Windows.Forms.NotifyIcon(this.components);
             this.label1 = new System.Windows.Forms.Label();
             this.textBox1 = new System.Windows.Forms.TextBox();
+            this.trayMenu = new System.Windows.Forms.ContextMenuStrip(this.components);
+            this.最小化ToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
+            this.最大化ToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
+            this.退出ToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
+            this.trayMenu.SuspendLayout();
             this.SuspendLayout();
             // 
             // notifyIcon1
             // 
-            this.notifyIcon1.Text = "notifyIcon1";
+            this.notifyIcon1.BalloonTipText = "热气球";
+            this.notifyIcon1.BalloonTipTitle = "带我飞过山和大海";
+            this.notifyIcon1.ContextMenuStrip = this.trayMenu;
+            this.notifyIcon1.Icon = ((System.Drawing.Icon)(resources.GetObject("notifyIcon1.Icon")));
+            this.notifyIcon1.Text = "热气球";
             this.notifyIcon1.Visible = true;
+            this.notifyIcon1.MouseDoubleClick += new System.Windows.Forms.MouseEventHandler(this.notifyIcon1_MouseDoubleClick);
             // 
             // label1
             // 
@@ -64,6 +75,33 @@ namespace WindowsFormsApp1
             this.textBox1.Size = new System.Drawing.Size(336, 347);
             this.textBox1.TabIndex = 1;
             // 
+            // trayMenu
+            // 
+            this.trayMenu.Items.AddRange(new System.Windows.Forms.ToolStripItem[] {
+            this.最小化ToolStripMenuItem,
+            this.最大化ToolStripMenuItem,
+            this.退出ToolStripMenuItem});
+            this.trayMenu.Name = "trayMenu";
+            this.trayMenu.Size = new System.Drawing.Size(113, 70);
+            // 
+            // 最小化ToolStripMenuItem
+            // 
+            this.最小化ToolStripMenuItem.Name = "最小化ToolStripMenuItem";
+            this.最小化ToolStripMenuItem.Size = new System.Drawing.Size(112, 22);
+            this.最小化ToolStripMenuItem.Text = "最小化";
+            // 
+            // 最大化ToolStripMenuItem
+            // 
+            this.最大化ToolStripMenuItem.Name = "最大化ToolStripMenuItem";
+            this.最大化ToolStripMenuItem.Size = new System.Drawing.Size(112, 22);
+            this.最大化ToolStripMenuItem.Text = "最大化";
+            // 
+            // 退出ToolStripMenuItem
+            // 
+            this.退出ToolStripMenuItem.Name = "退出ToolStripMenuItem";
+            this.退出ToolStripMenuItem.Size = new System.Drawing.Size(112, 22);
+            this.退出ToolStripMenuItem.Text = "退出";
+            // 
             // Form1
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 12F);
@@ -71,9 +109,12 @@ namespace WindowsFormsApp1
             this.ClientSize = new System.Drawing.Size(800, 450);
             this.Controls.Add(this.textBox1);
             this.Controls.Add(this.label1);
+            this.Icon = ((System.Drawing.Icon)(resources.GetObject("$this.Icon")));
             this.Name = "Form1";
             this.Text = "热气球";
+            this.FormClosing += new System.Windows.Forms.FormClosingEventHandler(this.Form1_FormClosing);
             this.Load += new System.EventHandler(this.Form1_Load);
+            this.trayMenu.ResumeLayout(false);
             this.ResumeLayout(false);
             this.PerformLayout();
 
@@ -84,6 +125,10 @@ namespace WindowsFormsApp1
         private System.Windows.Forms.NotifyIcon notifyIcon1;
         private Label label1;
         private TextBox textBox1;
+        private ContextMenuStrip trayMenu;
+        private ToolStripMenuItem 最小化ToolStripMenuItem;
+        private ToolStripMenuItem 最大化ToolStripMenuItem;
+        private ToolStripMenuItem 退出ToolStripMenuItem;
     }
 }
 
