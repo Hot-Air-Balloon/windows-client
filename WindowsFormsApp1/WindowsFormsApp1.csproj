@@ -85,6 +85,7 @@
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="RC4.cs" />
     <Compile Include="SocketListener.cs" />
+    <Compile Include="sysyemProxy\SystemProxy.cs" />
     <EmbeddedResource Include="Form1.resx">
       <DependentUpon>Form1.cs</DependentUpon>
     </EmbeddedResource>

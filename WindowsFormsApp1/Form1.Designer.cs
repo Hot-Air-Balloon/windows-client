@@ -36,12 +36,12 @@ namespace WindowsFormsApp1
             this.components = new System.ComponentModel.Container();
             System.ComponentModel.ComponentResourceManager resources = new System.ComponentModel.ComponentResourceManager(typeof(Form1));
             this.notifyIcon1 = new System.Windows.Forms.NotifyIcon(this.components);
-            this.label1 = new System.Windows.Forms.Label();
-            this.textBox1 = new System.Windows.Forms.TextBox();
             this.trayMenu = new System.Windows.Forms.ContextMenuStrip(this.components);
-            this.最小化ToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
+            this.AutoPacToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.最大化ToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.退出ToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
+            this.label1 = new System.Windows.Forms.Label();
+            this.textBox1 = new System.Windows.Forms.TextBox();
             this.trayMenu.SuspendLayout();
             this.SuspendLayout();
             // 
@@ -54,6 +54,34 @@ namespace WindowsFormsApp1
             this.notifyIcon1.Text = "热气球";
             this.notifyIcon1.Visible = true;
             this.notifyIcon1.MouseDoubleClick += new System.Windows.Forms.MouseEventHandler(this.notifyIcon1_MouseDoubleClick);
+            // 
+            // trayMenu
+            // 
+            this.trayMenu.Items.AddRange(new System.Windows.Forms.ToolStripItem[] {
+            this.AutoPacToolStripMenuItem,
+            this.最大化ToolStripMenuItem,
+            this.退出ToolStripMenuItem});
+            this.trayMenu.Name = "trayMenu";
+            this.trayMenu.Size = new System.Drawing.Size(181, 92);
+            // 
+            // AutoPacToolStripMenuItem
+            // 
+            this.AutoPacToolStripMenuItem.Name = "AutoPacToolStripMenuItem";
+            this.AutoPacToolStripMenuItem.Size = new System.Drawing.Size(180, 22);
+            this.AutoPacToolStripMenuItem.Text = "自动模式PAC";
+            this.AutoPacToolStripMenuItem.Click += new System.EventHandler(this.最小化ToolStripMenuItem_Click);
+            // 
+            // 最大化ToolStripMenuItem
+            // 
+            this.最大化ToolStripMenuItem.Name = "最大化ToolStripMenuItem";
+            this.最大化ToolStripMenuItem.Size = new System.Drawing.Size(180, 22);
+            this.最大化ToolStripMenuItem.Text = "最大化";
+            // 
+            // 退出ToolStripMenuItem
+            // 
+            this.退出ToolStripMenuItem.Name = "退出ToolStripMenuItem";
+            this.退出ToolStripMenuItem.Size = new System.Drawing.Size(180, 22);
+            this.退出ToolStripMenuItem.Text = "退出";
             // 
             // label1
             // 
@@ -74,33 +102,6 @@ namespace WindowsFormsApp1
             this.textBox1.ScrollBars = System.Windows.Forms.ScrollBars.Vertical;
             this.textBox1.Size = new System.Drawing.Size(336, 347);
             this.textBox1.TabIndex = 1;
-            // 
-            // trayMenu
-            // 
-            this.trayMenu.Items.AddRange(new System.Windows.Forms.ToolStripItem[] {
-            this.最小化ToolStripMenuItem,
-            this.最大化ToolStripMenuItem,
-            this.退出ToolStripMenuItem});
-            this.trayMenu.Name = "trayMenu";
-            this.trayMenu.Size = new System.Drawing.Size(113, 70);
-            // 
-            // 最小化ToolStripMenuItem
-            // 
-            this.最小化ToolStripMenuItem.Name = "最小化ToolStripMenuItem";
-            this.最小化ToolStripMenuItem.Size = new System.Drawing.Size(112, 22);
-            this.最小化ToolStripMenuItem.Text = "最小化";
-            // 
-            // 最大化ToolStripMenuItem
-            // 
-            this.最大化ToolStripMenuItem.Name = "最大化ToolStripMenuItem";
-            this.最大化ToolStripMenuItem.Size = new System.Drawing.Size(112, 22);
-            this.最大化ToolStripMenuItem.Text = "最大化";
-            // 
-            // 退出ToolStripMenuItem
-            // 
-            this.退出ToolStripMenuItem.Name = "退出ToolStripMenuItem";
-            this.退出ToolStripMenuItem.Size = new System.Drawing.Size(112, 22);
-            this.退出ToolStripMenuItem.Text = "退出";
             // 
             // Form1
             // 
@@ -126,7 +127,7 @@ namespace WindowsFormsApp1
         private Label label1;
         private TextBox textBox1;
         private ContextMenuStrip trayMenu;
-        private ToolStripMenuItem 最小化ToolStripMenuItem;
+        private ToolStripMenuItem AutoPacToolStripMenuItem;
         private ToolStripMenuItem 最大化ToolStripMenuItem;
         private ToolStripMenuItem 退出ToolStripMenuItem;
     }

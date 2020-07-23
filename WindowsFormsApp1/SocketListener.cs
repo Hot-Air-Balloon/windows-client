@@ -22,7 +22,7 @@ namespace WindowsFormsApp1
         private Dictionary<int, List<Thread>> recvThreadList = new Dictionary<int, List<Thread>>();
         private Form1 mainForm;
         // TODO 得有一个数据保存所有未销毁的线程和未关闭的socket，在父线程准备关闭时，需要调用SocketListener的销毁函数，销毁这个数据里保存的socket和线程
-
+        // 这个SocketListener获得连接以后，应该在内部保存多个连接类，把它们存起来，在这些连接类里处理初始化连接，开线程
         /**
          * 把16进制字符串传为字节数组
          */
