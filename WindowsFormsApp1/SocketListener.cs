@@ -21,6 +21,7 @@ namespace WindowsFormsApp1
         private List<Socket> connectSocketList = new List<Socket>();
         private Dictionary<int, List<Thread>> recvThreadList = new Dictionary<int, List<Thread>>();
         private Form1 mainForm;
+        private ConfigJson userConfigJson = null;
         // TODO 得有一个数据保存所有未销毁的线程和未关闭的socket，在父线程准备关闭时，需要调用SocketListener的销毁函数，销毁这个数据里保存的socket和线程
         // 这个SocketListener获得连接以后，应该在内部保存多个连接类，把它们存起来，在这些连接类里处理初始化连接，开线程
         /**
@@ -44,8 +45,9 @@ namespace WindowsFormsApp1
 
         public void Init(Form1 form)
         {
+            userConfigJson = Config.LoadJson();
             ipAddress = IPAddress.Parse("127.0.0.1");
-            port = 1080;
+            port = 1088;
             mainForm = form;
             mainForm.SetLogTextBox("SocketListener init");
             CreateSocket();
@@ -219,8 +221,8 @@ namespace WindowsFormsApp1
         /// <param name="clientSocket"></param>
         private void HandleSocket(object clientSocket)
         {
-            RC4 enCodeRc4 = new RC4("niceDayIn2020@998");
-            RC4 deCodeRc4 = new RC4("niceDayIn2020@998");
+            //RC4 enCodeRc4 = new RC4(userConfigJson.passport);
+            //RC4 deCodeRc4 = new RC4(userConfigJson.passport);
             ArrayList arrayList = clientSocket as ArrayList;
             int index = (int)arrayList[0];
             Socket clientSock = arrayList[1] as Socket;
@@ -231,26 +233,27 @@ namespace WindowsFormsApp1
                 recvThreadList[index][0].Abort();
                 return;
             }
+            Tunnel dataTunnel = new Tunnel(clientSock, remoteInfo, userConfigJson, mainForm);
             // 给目标建立连接
-            Socket targetSock = new Socket(AddressFamily.InterNetwork,
-                    SocketType.Stream,
-                    ProtocolType.Tcp);
-            Thread sendTargetThread = null;
-            try
-            {
-                targetSock.Connect("127.0.0.1", 16801);
-                SendTargetInfoToRemote(remoteInfo, targetSock, enCodeRc4);
-                sendTargetThread = new Thread(ThreadForTarget);
-                sendTargetThread.Start(new ArrayList { clientSock, targetSock, enCodeRc4 });
-                LoopReceiveAndSend(targetSock, clientSock, deCodeRc4);
-            } catch (Exception) {
-                mainForm.SetLogTextBox(string.Format("客户端发送接受异常"));
-            }
-            mainForm.SetLogTextBox(string.Format("终止客户端连接"));
-            clientSock.Close();
-            targetSock.Close();
-            recvThreadList[index][0].Abort();
-            sendTargetThread.Abort();
+            //Socket targetSock = new Socket(AddressFamily.InterNetwork,
+            //        SocketType.Stream,
+            //        ProtocolType.Tcp);
+            //Thread sendTargetThread = null;
+            //try
+            //{
+            //    targetSock.Connect(userConfigJson.server, userConfigJson.port);
+            //    SendTargetInfoToRemote(remoteInfo, targetSock, enCodeRc4);
+            //    sendTargetThread = new Thread(ThreadForTarget);
+            //    sendTargetThread.Start(new ArrayList { clientSock, targetSock, enCodeRc4 });
+            //    LoopReceiveAndSend(targetSock, clientSock, deCodeRc4);
+            //} catch (Exception) {
+            //    mainForm.SetLogTextBox(string.Format("客户端发送接受异常"));
+            //}
+            //mainForm.SetLogTextBox(string.Format("终止客户端连接"));
+            //clientSock.Close();
+            //targetSock.Close();
+            //recvThreadList[index][0].Abort();
+            //sendTargetThread.Abort();
             return;
         }
         private void ThreadForTarget(object socketList)

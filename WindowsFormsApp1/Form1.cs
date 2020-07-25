@@ -1,8 +1,9 @@
 ﻿using System;
-using System.Buffers.Text;
+using System.Buffers;
 using System.Collections.Generic;
 using System.ComponentModel;
 using System.Data;
+using System.IO;
 using System.Drawing;
 using System.Linq;
 using System.Net;
@@ -10,6 +11,10 @@ using System.Text;
 using System.Threading;
 using System.Windows.Forms;
 using WindowsFormsApp1.sysyemProxy;
+using System.Net.Sockets;
+using System.Threading.Tasks;
+using WatsonWebserver;
+using System.Collections;
 
 namespace WindowsFormsApp1
 {
@@ -33,8 +38,38 @@ namespace WindowsFormsApp1
         private void RunListener(object mainForm)
         {
             Form1 form = mainForm as Form1;
+            Thread httpListener = new Thread(SimpleListenerExample);
+            httpListener.Start();
+            Thread httpProxyListener = new Thread(httpProxy);
+            httpProxyListener.Start(new ArrayList { form });
             sockListener = SocketListener.Instance();
             sockListener.Init(form);
+        }
+        public void httpProxy (object arrayList)
+        {
+            ArrayList _arrayList = arrayList as ArrayList;
+            Form1 form = (Form1)_arrayList[0];
+            var listener = new TcpListener(IPAddress.Parse("127.0.0.1"), 8009);
+            listener.Start();
+            while (true)
+            {
+                TcpClient client = listener.AcceptTcpClient();
+                Task.Run(() => ProcessConnection(client, form));
+            }
+        }
+        public void ProcessConnection(TcpClient client, Form1 form)
+        {
+            HttpRequest req = HttpRequest.FromTcpClient(client);
+            if (req.Method == WatsonWebserver.HttpMethod.CONNECT)
+            {
+                SetLogTextBox(" proxying request via CONNECT to " + req.DestHostname + ":" + req.DestHostPort);
+                Dictionary<string, object> targetInfo = new Dictionary<string, object>;
+                targetInfo.Add("addr", req.DestHostname);
+                targetInfo.Add("port", req.DestHostPort);
+                // TODO 兼容 TcpClient
+                // Tunnel myTunnel = new Tunnel(client, targetInfo, userConfigJson, this);
+                return;
+            }
         }
         public static void SimpleListenerExample()
         {
@@ -53,46 +88,58 @@ namespace WindowsFormsApp1
             // Add the prefixes.
             // foreach (string s in prefixes)
             //{
-            listener.Prefixes.Add("http://127.0.0.1:8080/pac/");
+            // Random paccounter = new Random();
+            listener.Prefixes.Add($"http://127.0.0.1:8008/pac/");
             //}
             listener.Start();
-            Console.WriteLine("Listening...");
-            // Note: The GetContext method blocks while waiting for a request.
-            HttpListenerContext context = listener.GetContext();
-            HttpListenerRequest request = context.Request;
-            // Obtain a response object.
-            HttpListenerResponse response = context.Response;
-            // Construct a response.
-            string responseString = "<HTML><BODY> Hello world!</BODY></HTML>";
-            byte[] buffer = System.Text.Encoding.UTF8.GetBytes(responseString);
-            // Get a response stream and write the response to it.
-            response.ContentLength64 = buffer.Length;
-            response.ContentType = "application/x-ns-proxy-autoconfig";
-            System.IO.Stream output = response.OutputStream;
-            output.Write(buffer, 0, buffer.Length);
-            // You must close the output stream.
-            output.Close();
-            listener.Stop();
+            while(true)
+            {
+                try
+                {
+                    // Note: The GetContext method blocks while waiting for a request.
+                    HttpListenerContext context = listener.GetContext();
+                    HttpListenerRequest request = context.Request;
+                    // Obtain a response object.
+                    HttpListenerResponse response = context.Response;
+                    // Construct a response.
+                    using (StreamReader r = new StreamReader("MyPac.js"))
+                    {
+                        string responseString = r.ReadToEnd();
+                        byte[] buffer = System.Text.Encoding.UTF8.GetBytes(responseString);
+                        // Get a response stream and write the response to it.
+                        response.ContentLength64 = buffer.Length;
+                        response.ContentType = "application/x-ns-proxy-autoconfig";
+                        System.IO.Stream output = response.OutputStream;
+                        output.Write(buffer, 0, buffer.Length);
+                        // You must close the output stream.
+                        output.Close();
+                    }
+                } catch (Exception)
+                {
+                    listener.Stop();
+                }
+            }
         }
         private void label1_Click(object sender, EventArgs e)
         {
-            RC4 rc4 = new RC4("niceDayIn2020@998", Encoding.UTF8);
-            byte[] results1 = rc4.Encrypt("1111");
-            byte[] results2 = rc4.Encrypt("11");
-            // string reuslt = Convert.ToBase64String(RC4.Encrypt("ABCDDDDDDDDDDDDDDDDDDDDDD", "ToolGood", Encoding.UTF8));
-            SetLogTextBox(BitConverter.ToString(results1) + BitConverter.ToString(results2));
             SimpleListenerExample();
         }
         public void SetLogTextBox(String logStr)
         {
-            if (this.textBox1.InvokeRequired)
+            try
             {
-                var d = new SafeCallDelegate(SetLogTextBox);
-                this.textBox1.Invoke(d, new object[] { logStr });
-            }
-            else
+                if (this.textBox1.InvokeRequired)
+                {
+                    var d = new SafeCallDelegate(SetLogTextBox);
+                    this.textBox1.Invoke(d, new object[] { logStr });
+                }
+                else
+                {
+                    this.textBox1.AppendText(logStr + "\r\n");
+                }
+            } catch (Exception)
             {
-                this.textBox1.AppendText(logStr + "\r\n");
+
             }
         }
 
@@ -126,6 +173,16 @@ namespace WindowsFormsApp1
         private void 最小化ToolStripMenuItem_Click(object sender, EventArgs e)
         {
             SystemProxy.UpdateSystemProxy(2);
+            (sender as ToolStripMenuItem).Checked = !(sender as ToolStripMenuItem).Checked;
+        }
+
+        private void 退出ToolStripMenuItem_Click(object sender, EventArgs e)
+        {
+            SystemProxy.UpdateSystemProxy(1);
+            this.notifyIcon1.Visible = false;
+            this.Close();
+            this.Dispose();
+            Application.Exit();
         }
     }
 }

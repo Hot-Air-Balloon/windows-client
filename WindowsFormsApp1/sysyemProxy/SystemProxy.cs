@@ -32,7 +32,7 @@ namespace WindowsFormsApp1.sysyemProxy
             if (proxyMode == PACMode)
             {
                 registry.SetValue("ProxyEnable", 0);
-                registry.SetValue("AutoConfigURL", $"http://127.0.0.1:19000/proxy.pac/{paccounter.Next()}", RegistryValueKind.String);
+                registry.SetValue("AutoConfigURL", $"http://127.0.0.1:8008/pac/{paccounter.Next()}", RegistryValueKind.String);
             }
             InternetSetOption(IntPtr.Zero, INTERNET_OPTION_SETTINGS_CHANGED, IntPtr.Zero, 0);
             InternetSetOption(IntPtr.Zero, INTERNET_OPTION_REFRESH, IntPtr.Zero, 0);

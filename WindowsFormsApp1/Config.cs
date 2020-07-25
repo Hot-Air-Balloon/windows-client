@@ -23,7 +23,8 @@ namespace WindowsFormsApp1
     }
     public class ConfigJson
     {
-        public string[] Servers { get; set; }
-        public string Passport { get; set; }
+        public string server { get; set; }
+        public int port { get; set; }
+        public string passport { get; set; }
     }
 }
