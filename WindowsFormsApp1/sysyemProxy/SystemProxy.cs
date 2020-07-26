@@ -26,13 +26,26 @@ namespace WindowsFormsApp1.sysyemProxy
         {
             if (proxyMode == ManualMode)
             {
-                return;
+                RegistryKey registry = Registry.CurrentUser.OpenSubKey("Software\\Microsoft\\Windows\\CurrentVersion\\Internet Settings", true);
+                registry.SetValue("ProxyEnable", 0);
+                registry.DeleteValue("AutoConfigURL", false);
             }
-            RegistryKey registry = Registry.CurrentUser.OpenSubKey("Software\\Microsoft\\Windows\\CurrentVersion\\Internet Settings", true);
+            
             if (proxyMode == PACMode)
             {
+                RegistryKey registry = Registry.CurrentUser.OpenSubKey("Software\\Microsoft\\Windows\\CurrentVersion\\Internet Settings", true);
                 registry.SetValue("ProxyEnable", 0);
                 registry.SetValue("AutoConfigURL", $"http://127.0.0.1:8008/pac/{paccounter.Next()}", RegistryValueKind.String);
+            }
+            if (proxyMode == GlobalMode)
+            {
+                RegistryKey registry = Registry.CurrentUser.OpenSubKey("Software\\Microsoft\\Windows\\CurrentVersion\\Internet Settings", true);
+                registry.SetValue("ProxyEnable", 1);
+                var proxyServer = $"http://127.0.0.1:8009";
+                var proxyOverride = "<local>;localhost;127.*;10.*;172.16.*;172.17.*;172.18.*;172.19.*;172.20.*;172.21.*;172.22.*;172.23.*;172.24.*;172.25.*;172.26.*;172.27.*;172.28.*;172.29.*;172.30.*;172.31.*;172.32.*;192.168.*";
+                registry.SetValue("ProxyServer", proxyServer);
+                registry.SetValue("ProxyOverride", proxyOverride);
+                registry.DeleteValue("AutoConfigURL", false);
             }
             InternetSetOption(IntPtr.Zero, INTERNET_OPTION_SETTINGS_CHANGED, IntPtr.Zero, 0);
             InternetSetOption(IntPtr.Zero, INTERNET_OPTION_REFRESH, IntPtr.Zero, 0);

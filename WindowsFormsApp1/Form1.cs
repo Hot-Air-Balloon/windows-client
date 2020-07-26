@@ -59,16 +59,35 @@ namespace WindowsFormsApp1
         }
         public void ProcessConnection(TcpClient client, Form1 form)
         {
-            HttpRequest req = HttpRequest.FromTcpClient(client);
-            if (req.Method == WatsonWebserver.HttpMethod.CONNECT)
+            try
             {
-                SetLogTextBox(" proxying request via CONNECT to " + req.DestHostname + ":" + req.DestHostPort);
-                Dictionary<string, object> targetInfo = new Dictionary<string, object>;
-                targetInfo.Add("addr", req.DestHostname);
-                targetInfo.Add("port", req.DestHostPort);
-                // TODO 兼容 TcpClient
-                // Tunnel myTunnel = new Tunnel(client, targetInfo, userConfigJson, this);
-                return;
+                Stream httpStream = new System.IO.MemoryStream();
+                // HttpRequest req = HttpRequest.FromTcpClient(client);
+                byte[] myReadBuffer = new byte[1024 * 1024];
+                NetworkStream clientStream = client.GetStream();
+                int numberOfBytesRead = clientStream.Read(myReadBuffer, 0, myReadBuffer.Length);
+                httpStream.Write(myReadBuffer, 0, numberOfBytesRead);
+                form.SetLogTextBox(Encoding.ASCII.GetString(myReadBuffer, 0, numberOfBytesRead));
+                httpStream.Position = 0;
+                HttpRequest req = HttpRequest.FromStream(httpStream);
+                if (req.Method == WatsonWebserver.HttpMethod.CONNECT)
+                {
+                    form.SetLogTextBox(" proxying request via connect to " + req.DestHostname + ":" + req.DestHostPort);
+                    Dictionary<string, object> targetinfo = new Dictionary<string, object>();
+                    targetinfo.Add("addr", req.DestHostname);
+                    targetinfo.Add("port", (short)req.DestHostPort);
+                    string resp = "HTTP/1.1 200 Connection Established\r\n\r\n";
+                    clientStream.Write(Encoding.UTF8.GetBytes(resp), 0, resp.Length);
+                    // client.Close();
+                    // 兼容 tcpclient的情况，第一次
+                    Tunnel mytunnel = new Tunnel(client, clientStream, targetinfo, Config.LoadJson(), form);
+                    return;
+                }
+            } catch (Exception)
+            {
+                // string resp = "HTTP/1.1 200 Connection Established\r\n\r\n";
+                // clientStream.Write(Encoding.UTF8.GetBytes(resp), 0, resp.Length);
+                client.Close();
             }
         }
         public static void SimpleListenerExample()
