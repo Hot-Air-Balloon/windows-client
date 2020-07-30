@@ -10,13 +10,13 @@ using System.Net;
 using System.Text;
 using System.Threading;
 using System.Windows.Forms;
-using WindowsFormsApp1.sysyemProxy;
+using HotAirBalloon.sysyemProxy;
 using System.Net.Sockets;
 using System.Threading.Tasks;
 using WatsonWebserver;
 using System.Collections;
 
-namespace WindowsFormsApp1
+namespace HotAirBalloon
 {
     public partial class Form1 : Form
     {
@@ -202,6 +202,33 @@ namespace WindowsFormsApp1
             this.Close();
             this.Dispose();
             Application.Exit();
+        }
+
+        private void radioButton1_CheckedChanged(object sender, EventArgs e)
+        {
+            RadioButton radioButton = sender as RadioButton;
+            if (radioButton.Checked)
+            {
+                SystemProxy.UpdateSystemProxy(1);
+            }
+        }
+
+        private void radioButton2_CheckedChanged(object sender, EventArgs e)
+        {
+            RadioButton radioButton = sender as RadioButton;
+            if (radioButton.Checked)
+            {
+                SystemProxy.UpdateSystemProxy(2);
+            }
+        }
+
+        private void radioButton3_CheckedChanged(object sender, EventArgs e)
+        {
+            RadioButton radioButton = sender as RadioButton;
+            if (radioButton.Checked)
+            {
+                SystemProxy.UpdateSystemProxy(3);
+            }
         }
     }
 }

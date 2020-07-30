@@ -7,7 +7,7 @@ using System.Threading.Tasks;
 using System.Text.Json;
 using System.Windows.Forms;
 
-namespace WindowsFormsApp1
+namespace HotAirBalloon
 {
     public class Config
     {
