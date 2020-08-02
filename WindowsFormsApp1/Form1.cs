@@ -30,6 +30,8 @@ namespace HotAirBalloon
         private void Form1_Load(object sender, EventArgs e)
         {
             ConfigJson userConfigJson =  Config.LoadJson();
+            this.radioButton1.Checked = true;
+            SystemProxy.UpdateSystemProxy(1);
             Thread listener = new Thread(RunListener);
             listener.Start(this);
             // MessageBox.Show(userConfigJson.Passport, userConfigJson.Servers[0], MessageBoxButtons.YesNo);
@@ -70,17 +72,30 @@ namespace HotAirBalloon
                 form.SetLogTextBox(Encoding.ASCII.GetString(myReadBuffer, 0, numberOfBytesRead));
                 httpStream.Position = 0;
                 HttpRequest req = HttpRequest.FromStream(httpStream);
+
+                Dictionary<string, object> targetinfo = new Dictionary<string, object>();
+                targetinfo.Add("addr", req.DestHostname);
+                targetinfo.Add("port", (short)req.DestHostPort);
                 if (req.Method == WatsonWebserver.HttpMethod.CONNECT)
                 {
                     form.SetLogTextBox(" proxying request via connect to " + req.DestHostname + ":" + req.DestHostPort);
-                    Dictionary<string, object> targetinfo = new Dictionary<string, object>();
-                    targetinfo.Add("addr", req.DestHostname);
-                    targetinfo.Add("port", (short)req.DestHostPort);
                     string resp = "HTTP/1.1 200 Connection Established\r\n\r\n";
                     clientStream.Write(Encoding.UTF8.GetBytes(resp), 0, resp.Length);
-                    // client.Close();
                     // 兼容 tcpclient的情况，第一次
-                    Tunnel mytunnel = new Tunnel(client, clientStream, targetinfo, Config.LoadJson(), form);
+                    Tunnel mytunnel = new Tunnel(client, clientStream, targetinfo, Config.LoadJson(), form, new byte[1], 0);
+                    return;
+                } else
+                {
+                    if (req.DestHostname == "" || req.DestHostPort == 0)
+                    {
+                        string resp = "HTTP/1.1 200 Connection Established\r\n\r\n";
+                        clientStream.Write(Encoding.UTF8.GetBytes(resp), 0, resp.Length);
+                        client.Close();
+                        return;
+                    }
+                    // 如果时直接连接，就转发请求到对应
+                    form.SetLogTextBox(" proxying http " + req.DestHostname + ":" + req.DestHostPort);
+                    Tunnel mytunnel = new Tunnel(client, clientStream, targetinfo, Config.LoadJson(), form, myReadBuffer, numberOfBytesRead);
                     return;
                 }
             } catch (Exception)

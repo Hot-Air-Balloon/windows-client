@@ -35,7 +35,7 @@ namespace HotAirBalloon
             deCodeRc4 = new RC4(userConfigJson.passport);
             _form.SetLogTextBox("Tunnel");
             NetworkStream clientStream = new NetworkStream(_client);
-            TunnelStart(clientStream);
+            TunnelStart(clientStream, new byte[1], 0);
             //_remote = new Socket(AddressFamily.InterNetwork,
             //    SocketType.Stream,
             //    ProtocolType.Tcp);
@@ -57,7 +57,7 @@ namespace HotAirBalloon
             //}
             //Dispose();
         }
-        public Tunnel(TcpClient client, NetworkStream clientStream, Dictionary<string, object> targetInfo, ConfigJson userConfigJson, Form1 form1)
+        public Tunnel(TcpClient client, NetworkStream clientStream, Dictionary<string, object> targetInfo, ConfigJson userConfigJson, Form1 form1, byte[] sendData, int sendDataSize)
         {
             tcpClient = client;
             _userConfigJson = userConfigJson;
@@ -66,9 +66,9 @@ namespace HotAirBalloon
             enCodeRc4 = new RC4(userConfigJson.passport);
             deCodeRc4 = new RC4(userConfigJson.passport);
             _form.SetLogTextBox("http Tunnel");
-            TunnelStart(clientStream);
+            TunnelStart(clientStream, sendData, sendDataSize);
         }
-        public void TunnelStart(NetworkStream clientStream)
+        public void TunnelStart(NetworkStream clientStream, byte[] sendData, int sendDataSize)
         {
             _form.SetLogTextBox("Tunnel");
             _remote = new Socket(AddressFamily.InterNetwork,
@@ -80,6 +80,17 @@ namespace HotAirBalloon
                 _remote.Connect(_userConfigJson.server, _userConfigJson.port);
                 NetworkStream remoteStream = new NetworkStream(_remote);
                 SendTargetInfoToRemote(_targetInfo, remoteStream, enCodeRc4);
+                // 如果有提前发送的数据，就发送一下
+                if (sendDataSize > 0)
+                {
+                    byte[] tempData = new byte[sendDataSize];
+                    for (int i = 0; i < sendDataSize; i++)
+                    {
+                        tempData[i] = sendData[i];
+                    }
+                    byte[] enSendData = enCodeRc4.Encrypt(tempData);
+                    remoteStream.Write(enSendData, 0, sendDataSize);
+                }
                 _form.SetLogTextBox("send target Info");
                 sendTargetThread = new Thread(ThreadForTarget);
                 sendTargetThread.Start(new ArrayList { clientStream, remoteStream, enCodeRc4 });
